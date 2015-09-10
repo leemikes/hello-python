@@ -22,6 +22,7 @@
 import os
 import uuid
 from flask import Flask
+from flask import request   # So can request remote ip
 import pickle               # The pickle database
 import time                 # So I can get current date/time
 
@@ -29,6 +30,7 @@ import time                 # So I can get current date/time
 app = Flask(__name__)
 my_uuid = str(uuid.uuid1())
 
+filename = "pickle.db"
 
 BLUE = "#0099FF"
 GREEN = "#33CC33"
@@ -36,37 +38,46 @@ TEAL = "#008080"
 
 COLOR = TEAL
 
+def get_ip():
+    return request.remote_addr
+
+def get_record():
+        # Open the database file for reading
+        fileObject = open(filename, 'r+')
+        # load the list from the file into var mydata
+        therecord = pickle.load(fileObject)
+        # close the file
+        fileObject.close()
+
+        return therecord
+def put_record(newhitcount,newlocaltime,fromip):
+    # update the database with the new info
+    newrecord = [str(newhitcount),str(newlocaltime),str(fromip)]
+    # Open the database file for writing
+    fileObject = open(filename, 'wb')
+    # load the list from the file into var mydata
+    mydata = pickle.dump(newrecord,fileObject)
+    # close the file
+    fileObject.close()
+
 @app.route('/')
 
 def hello():
     localtime = time.asctime( time.localtime(time.time()) )
 
-    filename = "pickle.db"
+    yourip = get_ip()
 
-    # Open the database file for reading
-    fileObject = open(filename, 'r+')
-    # load the list from the file into var mydata
-    mydata = pickle.load(fileObject)
-    # close the file
-    fileObject.close()
-
+    mydata = get_record()
     # read back the prev. hitcount (first item in the list)
     hitcount = int(mydata[0])
     # read back the prev. hitdate (second item in list)
     oldhitdate = str(mydata[1])
     # read back the prev. GUID (second item in list)
-    prevguid = str(mydata[2])
-    # increment the hitcount
-    hitcount += 1
-    # update the database with the new info
-    mydata = [str(hitcount),str(localtime),str(my_uuid)]
-    # Open the database file for writing
-    fileObject = open(filename, 'wb')
-    # load the list from the file into var mydata
-    mydata = pickle.dump(mydata,fileObject)
-    # close the file
-    fileObject.close()
+    remoteip = str(mydata[2])
 
+    hitcount += 1
+
+    put_record(hitcount,localtime,yourip)
 
     return """
     <html>
@@ -74,6 +85,7 @@ def hello():
 
     <center><h1><font color="blue">Your App Instance GUID is:<br/>
     {}</br>
+    from: {}</br>
 
     <center><font color="red">Page Hit Count is now:
     {}</br>
@@ -83,15 +95,12 @@ def hello():
 
     <center><font color="purple">The last time this page was hit was on:<br/>
     {} GMT</br>
-    by App Instance:<br/>
-    {}</br>
-
 
     </center>
 
     </body>
     </html>
-    """.format(COLOR,my_uuid,hitcount,localtime,oldhitdate,prevguid)
+    """.format(COLOR,my_uuid,remoteip,hitcount,localtime,oldhitdate)
 
 if __name__ == "__main__":
 	app.run(debug=True,host='0.0.0.0',
