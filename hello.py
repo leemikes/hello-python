@@ -42,13 +42,15 @@ def get_ip():
     return request.remote_addr
 
 def get_record():
-        # Open the database file for reading
-        fileObject = open(filename, 'r+')
-        # load the list from the file into var mydata
-        therecord = pickle.load(fileObject)
-        # close the file
-        fileObject.close()
-
+        if os.path.exists(filename):
+            # Open the database file for reading
+            fileObject = open(filename, 'r+')
+            # load the list from the file into var mydata
+            therecord = pickle.load(fileObject)
+            # close the file
+            fileObject.close()
+        else:
+            therecord = [str(0),"Beginning of Time and Space","0.0.0.0"]
         return therecord
 def put_record(newhitcount,newlocaltime,fromip):
     # update the database with the new info
