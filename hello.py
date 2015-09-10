@@ -26,6 +26,12 @@ from flask import request   # So can request remote ip
 import pickle               # The pickle database
 import time                 # So I can get current date/time
 
+import redis
+import json
+
+rediscloud_service = json.loads(os.environ['VCAP_SERVICES'])['rediscloud'][0]
+credentials = rediscloud_service['credentials']
+r = redis.Redis(host=credentials['hostname'], port=credentials['port'], password=credentials['password'])
 
 app = Flask(__name__)
 my_uuid = str(uuid.uuid1())
@@ -42,25 +48,39 @@ def get_ip():
     return request.remote_addr
 
 def get_record():
-        if os.path.exists(filename):
-            # Open the database file for reading
-            fileObject = open(filename, 'r+')
-            # load the list from the file into var mydata
-            therecord = pickle.load(fileObject)
-            # close the file
-            fileObject.close()
-        else:
-            therecord = [str(0),"Beginning of Time and Space","0.0.0.0"]
-        return therecord
+#          if os.path.exists(filename):
+#            # Open the database file for reading
+#            fileObject = open(filename, 'r+')
+#            # load the list from the file into var mydata
+#            therecord = pickle.load(fileObject)
+#            # close the file
+#            fileObject.close()
+#        else:
+#            therecord = [str(0),"Beginning of Time and Space","0.0.0.0"]
+#        return therecord
+    oldhitcounter = r.get('TOTALHITS')
+    oldlocaltime = r.get('LOCALTIME')
+    oldipaddr = r.get('APP_IP')
+    therecord = [oldhitcounter,oldlocaltime,oldipaddr]
+    return therecord
+
 def put_record(newhitcount,newlocaltime,fromip):
-    # update the database with the new info
-    newrecord = [str(newhitcount),str(newlocaltime),str(fromip)]
-    # Open the database file for writing
-    fileObject = open(filename, 'wb')
-    # load the list from the file into var mydata
-    mydata = pickle.dump(newrecord,fileObject)
-    # close the file
-    fileObject.close()
+#    # update the database with the new info
+#    newrecord = [str(newhitcount),str(newlocaltime),str(fromip)]
+#    # Open the database file for writing
+#    fileObject = open(filename, 'wb')
+#    # load the list from the file into var mydata
+#    mydata = pickle.dump(newrecord,fileObject)
+#    # close the file
+#    fileObject.close()
+    r.incr('TOTALHITS')
+#   newhitcount += 1
+#   r.set('TOTALHITS',newhitcount)
+
+    r.set('LOCALTIME',newlocaltime)
+    r.set('APP_IP',fromip)
+
+    return
 
 @app.route('/')
 
@@ -76,8 +96,6 @@ def hello():
     oldhitdate = str(mydata[1])
     # read back the prev. GUID (second item in list)
     remoteip = str(mydata[2])
-
-    hitcount += 1
 
     put_record(hitcount,localtime,yourip)
 
@@ -97,12 +115,13 @@ def hello():
 
     <center><font color="purple">The last time this page was hit was on:<br/>
     {} GMT</br>
+    from: {}</br>
 
     </center>
 
     </body>
     </html>
-    """.format(COLOR,my_uuid,remoteip,hitcount,localtime,oldhitdate)
+    """.format(COLOR,my_uuid,yourip,hitcount,localtime,oldhitdate,remoteip)
 
 if __name__ == "__main__":
 	app.run(debug=True,host='0.0.0.0',
