@@ -72,7 +72,7 @@ def hello():
     <html>
     <body bgcolor="{}">
 
-    <center><h1><font color="blue">Your GUID is:<br/>
+    <center><h1><font color="blue">Your App Instance GUID is:<br/>
     {}</br>
 
     <center><font color="red">Page Hit Count is now:
@@ -83,7 +83,7 @@ def hello():
 
     <center><font color="purple">The last time this page was hit was on:<br/>
     {} GMT</br>
-    by<br/>
+    by App Instance:<br/>
     {}</br>
 
 
