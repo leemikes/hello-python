@@ -36,7 +36,6 @@ TEAL = "#008080"
 
 COLOR = TEAL
 
-
 @app.route('/')
 
 def hello():
@@ -55,10 +54,12 @@ def hello():
     hitcount = int(mydata[0])
     # read back the prev. hitdate (second item in list)
     oldhitdate = str(mydata[1])
+    # read back the prev. GUID (second item in list)
+    prevguid = str(mydata[2])
     # increment the hitcount
     hitcount += 1
     # update the database with the new info
-    mydata = [str(hitcount),str(localtime)]
+    mydata = [str(hitcount),str(localtime),str(my_uuid)]
     # Open the database file for writing
     fileObject = open(filename, 'wb')
     # load the list from the file into var mydata
@@ -82,13 +83,15 @@ def hello():
 
     <center><font color="purple">The last time this page was hit was on:<br/>
     {} GMT</br>
+    by<br/>
+    {}</br>
 
 
     </center>
 
     </body>
     </html>
-    """.format(COLOR,my_uuid,hitcount,localtime,oldhitdate)
+    """.format(COLOR,my_uuid,hitcount,localtime,oldhitdate,prevguid)
 
 if __name__ == "__main__":
 	app.run(debug=True,host='0.0.0.0',
