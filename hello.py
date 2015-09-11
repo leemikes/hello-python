@@ -118,6 +118,7 @@ def hello():
     from: {}</br>
 
     </center>
+    '<img src="http://4.bp.blogspot.com/-BuH2ToJ0VNI/VKHwNFVjRzI/AAAAAAAAkMM/MdBkbU-mwpM/s1600/seahawks%2Blogo%2B-%2Bsuperman.jpg">'
 
     </body>
     </html>
